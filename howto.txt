@@ -1,0 +1,55 @@
+1. TOOLS
+========
+
+Using vlc + jtvlc to stream:
+
+  vlc pre-1.2.0 seems to work better for streaming than 1.1.3, so I built from git.
+  vlc and x264 from git: http://wiki.videolan.org/Git
+
+  jtvlc: http://apiwiki.justin.tv/mediawiki/index.php/Linux_Broadcasting_API#Download
+
+The schedule script uses standard tools on most Linux boxes: wget, python, ImageMagick.
+
+
+2. STARTING THE STREAM
+======================
+
+TERMINAL 1:
+
+$ vlc --extraintf=http --loop --sout='#transcode{venc=x264{preset=medium,keyint=30,idrint=2},vcodec=h264,vb=256,acodec=mp4a,ab=96,channels=1,sfilter=marq{marquee=%I:%M %p$_$t,size=12,position=9,opacity=64,color=16777215}}:rtp{mux=ts,dst=127.0.0.1,port=60100,sdp=file:///MST3K/internal.sdp}' /MST3K/mst3k.xspf
+
+Explanation:
+
+ * "--extraintf=http" is so the "upcoming episodes" script can get state info.
+
+ * "--loop" loops the playlist.
+
+ * The marquee args add a timestamp and filename to the lower left-hand-side.
+   It's mostly translucent so that it's not too noisy in the theater scenes.
+
+ * video bitrate of 256, audio bitrate of 96, mono, preset=medium are all
+   because this server isn't so hot.  On a faster system it would be better
+   to use preset=slow or preset=slower.
+
+ * /MST3K/mst3k.xspf is the playlist of all the MST eps
+
+
+TERMINAL 2:
+
+$ cp /MST3K/internal.sdp /MST3K/public.sdp
+$ /path/to/jtvlc-0.41/jtvlc your-username your-public-key /MST3K/public.sdp
+
+Explanation: jtvlc stops whenever the sdp file changes, but vlc rewrites
+the file whenever it jumps to the next file in the playlist.  So if you
+point jtvlc at the file created by vlc (internal.sdp, in this example)
+you'll only be able to play one file.  Happily, since all the settings
+stay the same from file to file, we can work around the problem by making
+a copy of vlc's sdp file and giving *the copy* to jtvlc.
+
+
+3. REFRESHING THE SCHEDULE
+==========================
+$ cd /path/to/sandbox
+$ ./create-playlist-image.py ./playlist.jpg
+$ git commit playlist.jpg -m "updating playlist"
+$ git push
