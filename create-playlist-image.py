@@ -97,7 +97,7 @@ cmd ='cp bankline.mpc playlist.mpc'
 os.system(cmd)
 
 for episode in upcoming:
-	name = episode[0].replace("'","`")
+	name = episode[0].replace("'","`").replace(".avi","")
 	secs = episode[1]
 
 	ltime = time.localtime( secs )
