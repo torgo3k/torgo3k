@@ -4,8 +4,9 @@ NUM_HOURS_TO_LIST = 60
 STATS_URL = 'http://localhost:8080/requests/status.xml'
 PLAYLIST_URL = "http://localhost:8080/requests/playlist.xml"
 
-IMAGE_WIDTH = '500'
-LINE_HEIGHT = '28'
+LINE_DIMENSIONS = '500x28'
+BACKGROUND_COLOR = 'black'
+FOREGROUND_COLOR = 'white'
 FONT_REGULAR = "Droid-Sans-Regular" # run "identify -list font" from the command line
 FONT_BOLD = "Droid-Sans-Bold" # run "identify -list font" from the command line
 POINTSIZE = '14'
@@ -32,20 +33,20 @@ def getText(nodelist):
             rc.append(node.data)
     return ''.join(rc)
 
-# kind of clumsy... this is really inefficient
+# FIXME: this is inefficient and not very flexible.
+# maybe use html -> html2ps -> imagemagick convert ps->gif?
 def addLine(font, str):
     #print str
     LEFT_SPACER = '   '
     os.system( 'convert -append playlist.mpc blankline.mpc playlist.mpc' )
-    cmd = 'convert playlist.mpc -gravity "SouthWest" -font "'+font+'"  -pointsize '+POINTSIZE+' -draw \'text 0,3 "'
+    cmd = 'convert playlist.mpc -gravity "SouthWest" -fill '+FOREGROUND_COLOR+' -font "'+font+'"  -pointsize '+POINTSIZE+' -draw \'text 0,3 "'
     cmd += LEFT_SPACER + str
     cmd += '"\' playlist.mpc'
     os.system( cmd )
 
 # get info from the vlc server
 stats = minidom.parse(urllib.urlopen(STATS_URL))
-current_time = int(getText(stats.getElementsByTagName("time")[0].childNodes))
-#current_length = int(getText(stats.getElementsByTagName("length")[0].childNodes))
+time_in_current_file = int(getText(stats.getElementsByTagName("time")[0].childNodes))
 playlist = minidom.parse(urllib.urlopen(PLAYLIST_URL))
 
 # parse the playlist into an array of titles & lengths
@@ -68,7 +69,7 @@ for node in playlist.getElementsByTagName( "node" ):
 
 # decide which time range to display
 now = time.time()
-start_time = now - current_time
+start_time = now - time_in_current_file
 end_time = start_time + (NUM_HOURS_TO_LIST * 60 * 60)
 
 # loop through the episodes until we reach end_time
@@ -86,8 +87,12 @@ while ends_at <= end_time:
 
 
 # now, making the upcoming file:
-os.system('convert xc:white -resize '+IMAGE_WIDTH+'x'+LINE_HEIGHT+'! blankline.mpc')
-os.system('cp bankline.mpc playlist.mpc')
+cmd ='convert -size '+LINE_DIMENSIONS+' xc:'+BACKGROUND_COLOR+' blankline.mpc'
+#print cmd
+os.system(cmd)
+cmd ='cp bankline.mpc playlist.mpc'
+#print cmd
+os.system(cmd)
 
 addLine( FONT_BOLD, 'Upcoming Episodes:' )
 for episode in upcoming:
