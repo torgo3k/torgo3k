@@ -4,6 +4,8 @@ NUM_HOURS_TO_LIST = 60
 STATS_URL = 'http://localhost:8080/requests/status.xml'
 PLAYLIST_URL = "http://localhost:8080/requests/playlist.xml"
 
+CONVERT_EXEC = "nice -n10 /usr/bin/convert"
+
 LINE_DIMENSIONS = '500x28'
 BACKGROUND_COLOR = 'black'
 FOREGROUND_COLOR = 'white'
@@ -38,8 +40,8 @@ def getText(nodelist):
 def addLine(font, str):
     #print str
     LEFT_SPACER = '   '
-    os.system( 'convert -append playlist.mpc blankline.mpc playlist.mpc' )
-    cmd = 'convert playlist.mpc -gravity "SouthWest" -fill '+FOREGROUND_COLOR+' -font "'+font+'"  -pointsize '+POINTSIZE+' -draw \'text 0,3 "'
+    os.system( CONVERT_EXEC+' -append playlist.mpc blankline.mpc playlist.mpc' )
+    cmd = CONVERT_EXEC + ' playlist.mpc -gravity "SouthWest" -fill '+FOREGROUND_COLOR+' -font "'+font+'"  -pointsize '+POINTSIZE+' -draw \'text 0,3 "'
     cmd += LEFT_SPACER + str
     cmd += '"\' playlist.mpc'
     os.system( cmd )
@@ -87,14 +89,13 @@ while ends_at <= end_time:
 
 
 # now, making the upcoming file:
-cmd ='convert -size '+LINE_DIMENSIONS+' xc:'+BACKGROUND_COLOR+' blankline.mpc'
+cmd = CONVERT_EXEC + ' -size '+LINE_DIMENSIONS+' xc:'+BACKGROUND_COLOR+' blankline.mpc'
 #print cmd
 os.system(cmd)
 cmd ='cp bankline.mpc playlist.mpc'
 #print cmd
 os.system(cmd)
 
-addLine( FONT_BOLD, 'Upcoming Episodes:' )
 for episode in upcoming:
 	name = episode[0].replace("'","`")
 	secs = episode[1]
@@ -110,7 +111,7 @@ for episode in upcoming:
 	addLine( FONT_REGULAR, '    ' + timestr + '   ' + name )
 
 addLine( FONT_REGULAR, '' )
-os.system( 'convert playlist.mpc ' + output_file )
+os.system( CONVERT_EXEC + ' playlist.mpc ' + output_file )
 
 # clean up the temp files
 try:
