@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import re
 import shutil
 import sys
 import time
@@ -32,7 +33,7 @@ time_in_current_file = int(getText(stats.getElementsByTagName("time")[0].childNo
 playlist = minidom.parse(urllib.urlopen(PLAYLIST_URL))
 
 # parse the playlist into an array of titles & lengths
-names = [ ]
+titles = [ ]
 lengths = [ ]
 i = 0
 current_index = 0
@@ -45,7 +46,7 @@ for node in playlist.getElementsByTagName("node"):
                         current_index = i
                 except:
                     pass
-                names.append(leaf.attributes["name"].value)
+                titles.append(leaf.getElementsByTagName('title')[0].firstChild.wholeText)
                 lengths.append(int(leaf.attributes["duration"].value)/1000000)
                 i = i + 1
 
@@ -59,11 +60,11 @@ upcoming = [ ]
 i = current_index
 starts_at = start_time
 ends_at = starts_at + lengths[i]
-upcoming.append([ names[i], starts_at ])
+upcoming.append([ titles[i], starts_at ])
 while ends_at <= end_time:
-    i = (i+1) % len(names)
+    i = (i+1) % len(titles)
     starts_at = ends_at
-    upcoming.append([ names[i], starts_at ])
+    upcoming.append([ titles[i], starts_at ])
     ends_at = starts_at + lengths[i]
 
 
@@ -79,11 +80,11 @@ text=[ '<html>\n',
        '</style>\n',
        '</head>\n',
        '<body>\n',
-       '<p><i>(If this image looks out-of-date, reload the page in your browser)</i></p>' ]
+       '<p><i>(If this image looks out-of-date, reload the page in your browser)</i></p>\n\n' ]
 
 current_day = -1
 for episode in upcoming:
-    name = episode[0].replace("&","&amp;").replace(".avi","")
+    title = episode[0].replace(".avi","")
     secs = episode[1]
 
     ltime = time.localtime(secs)
@@ -97,14 +98,14 @@ for episode in upcoming:
     timestr = time.strftime('%I:%M %p', ltime)
     text.append('<tr>')
     text.extend(['<td>',timestr,'</td>'])
-    ep = ''
-    if len(name) > 6 and name[0] == 'S' and name[3] == 'E' and name[6] == ' ':
-        ep = name[:6]
-        name = name[6:]
-        if name[:3] == ' - ':
-            name = name[3:]
+    m = re.search(r'(\d+) - (.*)', title)
+    if m != None:
+        ep = m.groups()[0]
+	title = m.groups()[1]
+    else:
+        ep = '&infin;'
     text.extend(['<td>',ep,'</td>'])
-    text.extend(['<td>',name,'</td>'])
+    text.extend(['<td>',title,'</td>'])
     text.append('</tr>\n')
 
 text.extend(['</table>\n','</body>\n','</html>\n'])
