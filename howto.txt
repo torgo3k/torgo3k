@@ -16,7 +16,7 @@ The schedule script uses standard tools on most Linux boxes: wget, python, Image
 
 TERMINAL 1:
 
-$ vlc --extraintf=http --loop --sout='#transcode{venc=x264{preset=medium,keyint=30,idrint=2},vcodec=h264,vb=256,acodec=mp4a,ab=96,channels=1,sfilter=marq{marquee=%I:%M %p$_$t,size=12,position=9,opacity=64,color=16777215}}:rtp{mux=ts,dst=127.0.0.1,port=60100,sdp=file:///MST3K/internal.sdp}' /MST3K/mst3k.xspf
+$ vlc --extraintf=http --loop --sout='#transcode{venc=x264{preset=medium,keyint=30,idrint=2},vcodec=h264,vb=600,acodec=mp4a,ab=96,channels=1,sfilter=marq{marquee=%I:%M %p$_$t,size=11,position=9,opacity=128,color=16777215}}:rtp{mux=ts,dst=127.0.0.1,port=60100,sdp=file:///MST3K/internal.sdp}' /MST3K/mst3k.xspf
 
 Explanation:
 
@@ -27,9 +27,11 @@ Explanation:
  * The marquee args add a timestamp and filename to the lower left-hand-side.
    It's mostly translucent so that it's not too noisy in the theater scenes.
 
- * video bitrate of 256, audio bitrate of 96, mono, preset=medium are all
-   because this server isn't so hot.  On a faster system it would be better
-   to use preset=slow or preset=slower.
+ * video bitrate of 600 is to get the HQ tag on justin
+
+ * audio bitrate of 96, mono, and the x264 preset=medium are all
+   because this server isn't so hot.  On a faster system it would
+   be better to use preset=slow or preset=slower.
 
  * /MST3K/mst3k.xspf is the playlist of all the MST eps
 
