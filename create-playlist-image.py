@@ -46,7 +46,12 @@ for node in playlist.getElementsByTagName("node"):
                         current_index = i
                 except:
                     pass
-                titles.append(leaf.getElementsByTagName('title')[0].firstChild.wholeText)
+
+                try:
+                    titles.append(leaf.getElementsByTagName('title')[0].firstChild.wholeText)
+                except AttributeError:
+                    titles.append(leaf.attributes["name"].value)
+
                 lengths.append(int(leaf.attributes["duration"].value)/1000000)
                 i = i + 1
 
